@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx'
+import locationsToBoundingBox from './utils/bounding-box'
+import GetData from './data-fetcher'
 // https://www.cluemediator.com/read-csv-file-in-react
 function App() {
 
@@ -79,15 +81,15 @@ function App() {
 
     const newData = JSON.parse(JSON.stringify(data))
     newData.forEach(houseObj => {
-      houseObj.Schools = ConcateLatLong(houseObj.Lattitude, houseObj.Longtitude);
+      // intended logic -  houseObj.Schools = GetData(locationsToBoundingBox(houseObj.Lattitude, houseObj.Longtitude));
+      houseObj.Schools = locationsToBoundingBox(houseObj.Lattitude, houseObj.Longtitude);
+      console.log(houseObj.Schools)
     })
-
+    GetData()
     setData(newData)
   }
 
-  const ConcateLatLong = (lat, long) => {
-    return lat + long
-  }
+
 
   return (
     <div>
