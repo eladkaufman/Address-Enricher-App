@@ -1,8 +1,8 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import DataTable from 'react-data-table-component';
-import * as XLSX from 'xlsx'
-import locationsToBoundingBox from './utils/bounding-box'
-import GetData from './data-fetcher'
+import * as XLSX from 'xlsx';
+
 // https://www.cluemediator.com/read-csv-file-in-react
 function App() {
 
@@ -12,7 +12,7 @@ function App() {
 
   // process CSV data
   const processData = dataString => {
-    debugger;
+
     const dataStringLines = dataString.split(/\r\n|\n/);
     const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
 
@@ -79,16 +79,38 @@ function App() {
       }
     ]);
 
-    const newData = JSON.parse(JSON.stringify(data))
-    newData.forEach(houseObj => {
-      // intended logic -  houseObj.Schools = GetData(locationsToBoundingBox(houseObj.Lattitude, houseObj.Longtitude));
-      houseObj.Schools = locationsToBoundingBox(houseObj.Lattitude, houseObj.Longtitude);
-      console.log(houseObj.Schools)
-    })
-    GetData()
-    setData(newData)
-  }
+    const promises = []
 
+    for (let i = 0; i < data.length; i++) {
+      FetchData(data[i])
+        .then(newHouseObj => {
+          setData([...data], data[i].Schools = newHouseObj.Schools)
+          console.log(`id = ${data[i].SAMPLE_ID} newHouseObj.Schools= ${newHouseObj.Schools}, data[i].Schools = ${data[i].Schools} `)
+        })
+        .catch(error => console.log(`Error in promises ${error}`))
+    }
+
+    // data.forEach(houseObj => {
+    //   FetchData(houseObj)
+    //     .then(newHouseObj => {
+
+    //       console.log(setData([...data, data.filter(obj => obj.SAMPLE_ID === newHouseObj.SAMPLE_ID)[0].school = newHouseObj.school)]) 
+
+    //     })
+    //     .catch(error => console.log(`Error in promises ${error}`))
+    // })
+
+    //   data.forEach(houseObj => { promises.push(FetchData(houseObj)) })
+    //   console.log(promises)
+    //   Promise.all(promises).then(vals => console.log(vals)).catch(error => console.log(`Error in promises ${error}`))
+    // }
+  }
+  const FetchData = async (rowObj) => {
+
+    const res = await axios.post("http://localhost:8000/api/enrich/", rowObj)
+
+    return res.data
+  }
 
 
   return (
