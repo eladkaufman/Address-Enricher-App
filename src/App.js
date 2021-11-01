@@ -18,7 +18,7 @@ function App() {
   const [currBatchStart, setCurrBatchstart] = useState(0)
 
   const handleFileUpload = e => {
-    handleUpload({ e, setDisable, setData, setBatchDataDisplay, setColumns, BATCH_SIZE })
+    handleUpload(e, setDisable, setData, setBatchDataDisplay, setColumns, BATCH_SIZE)
   }
 
   const addSchoolCol = () => {
@@ -35,35 +35,48 @@ function App() {
   }
 
   const loadNextBatch = () => {
-    loadBatch({ setLoading, setLoadMoreEnable, currBatchStart, BATCH_SIZE, data, setData, setBatchDataDisplay, setCurrBatchstart })
+    loadBatch(setLoading, setLoadMoreEnable, currBatchStart, BATCH_SIZE, data, setData, setBatchDataDisplay, setCurrBatchstart)
   }
 
 
   return (
     <div>
-      <h3>Households Info</h3>
+      <h1>Households Info</h1>
+      <br />
+      <label for="files" class="btn btn-primary">Choose File</label>
+      {/* <input type="file"> */}
       <input
         type="file"
+        style={{ visibility: "hidden" }}
+        id="files"
         accept=".csv,.xlsx,.xls"
         onChange={handleFileUpload}
       />
       <button
+        class="btn btn-secondary"
+        style={{ float: "right" }}
         onClick={addSchoolCol}
         disabled={disable}>
         Add Schools
       </button>
 
-      {loading && (<ReactBootStrap.Spinner animation="border" />)}
 
       <Table
         columns={columns}
         batchDataDisplay={batchDataDisplay} />
 
-      <button
-        onClick={loadNextBatch}
-        disabled={!loadMoreEnable}>
-        Load More
-      </button>
+      {loading ?
+        (<ReactBootStrap.Spinner animation="border" />)
+        :
+        (<button
+          class="btn btn-secondary"
+          onClick={loadNextBatch}
+          disabled={!loadMoreEnable}>
+          Load More
+        </button>)
+
+      }
+
     </div >
   );
 }

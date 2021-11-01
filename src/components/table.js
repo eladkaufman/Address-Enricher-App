@@ -14,9 +14,9 @@ const Table = (props) => {
                 </tr>
             </thead>
             <tbody>
-                {batchDataDisplay.map((houseObj) => {
+                {batchDataDisplay.map((houseObj, rowIdx) => {
                     return (
-                        <tr key={houseObj.SAMPLE_ID}>
+                        <tr key={houseObj.SAMPLE_ID + rowIdx}>
                             {Object.values(houseObj).map((value, idx) => {
                                 return (
                                     <td key={value + idx} >{value}</td>
