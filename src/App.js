@@ -1,22 +1,24 @@
 import axios from 'axios';
+import './App.css'
 import React, { useState } from 'react';
-import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx';
 import * as ReactBootStrap from 'react-bootstrap';
 
+const BATCH_SIZE = 4
 function App() {
 
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
-  const [disable, setDisable] = useState(false);
-  const [loading, setLoading] = useState(false)
-
+  const [batchDataDisplay, setBatchDataDisplay] = useState([])
+  const [disable, setDisable] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadMoreEnable, setLoadMoreEnable] = useState(false)
+  const [currBatchStart, setCurrBatchstart] = useState(0)
 
   const processData = dataString => {
 
     const dataStringLines = dataString.split(/\r\n|\n/);
     const headers = dataStringLines[0].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
-
     const list = [];
     for (let i = 1; i < dataStringLines.length; i++) {
       const row = dataStringLines[i].split(/,(?![^"]*"(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -40,18 +42,18 @@ function App() {
         }
       }
     }
-
     const columns = headers.map(c => ({
       name: c,
       selector: row => row[c],
     }));
-
     setData(list);
+    setBatchDataDisplay(list.slice(0, BATCH_SIZE))
     setColumns(columns);
+
   }
 
-
   const handleFileUpload = e => {
+
     const file = e.target.files[0];
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -64,10 +66,11 @@ function App() {
       processData(data);
     };
     reader.readAsBinaryString(file);
+    setDisable(false)
   }
 
   const addSchoolCol = () => {
-    setLoading(true)
+
     setDisable(true)
     setColumns([
       ...columns,
@@ -76,22 +79,19 @@ function App() {
         selector: row => row["Schools"]
       }
     ]);
+    loadBatch()
+  }
 
-    // for (let i = 0; i < data.length; i++) {
-    //   (async () => {
 
-    //     let newHouseObj = await fetchData(data[i])
-    //     setData([...data], data[i].Schools = newHouseObj.Schools)
-    //     console.log(`id = ${data[i].SAMPLE_ID} newHouseObj.Schools= ${newHouseObj.Schools}, data[i].Schools = ${data[i].Schools}`)
-    //   })()
-    // }
+  const loadBatch = () => {
 
+    setLoading(true)
+    setLoadMoreEnable(false)
     const promises = []
-    for (let i = 0; i < 10; i++) { promises.push(fetchData(data[i])) }
+    for (let i = currBatchStart; i < currBatchStart + BATCH_SIZE && i < data.length; i++) { promises.push(fetchData(data[i])) }
     Promise.all(promises)
       .then(res => {
-        setLoading(false)
-        console.log(res)
+
         const updatedData = data;
         res.forEach(houseObj => {
           if (houseObj !== "") {
@@ -100,15 +100,21 @@ function App() {
         })
 
         setData([...updatedData])
+        setBatchDataDisplay(updatedData.splice(0, currBatchStart + BATCH_SIZE))
+        setLoading(false)
+        setCurrBatchstart(currBatchStart + BATCH_SIZE)
+        if (currBatchStart + BATCH_SIZE >= data.length) {
+          setLoadMoreEnable(false)
+        }
+        setLoadMoreEnable(true)
       })
       .catch(err => console.log(err))
-
-
   }
+
+
   const fetchData = async (rowObj) => {
 
     const res = await axios.post("http://localhost:8000/api/enrich/", rowObj)
-
     return res.data
   }
 
@@ -125,15 +131,36 @@ function App() {
       {loading ?
         (<ReactBootStrap.Spinner animation="border" />)
         :
-        (<DataTable
-          pagination
-          highlightOnHover
-          columns={columns}
-          data={data}
-        />)}
+        (
+          <table border="1" style={{ margin: "3px" }}>
+            <thead>
+              <tr>
+                {columns.map((col, idx) => {
+                  return (
+                    <th key={col + idx}>{col.name}</th>
+                  )
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {batchDataDisplay.map((houseObj, idx) => {
+                return (
+                  <tr>
+                    {Object.values(houseObj).map((value) => {
+                      return (
+                        <td >{value}</td>
+                      )
+                    })}
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )
+      }
 
-      {data.map(obj => { return (<p>{obj.SAMPLE_ID}, {obj.Schools}</p>) })}
-    </div>
+      <button onClick={loadBatch} disabled={!loadMoreEnable}>Load More</button>
+    </div >
   );
 }
 
