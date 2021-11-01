@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import * as ReactBootStrap from 'react-bootstrap';
 
 const BATCH_SIZE = 4
+
 function App() {
 
   const [columns, setColumns] = useState([]);
@@ -128,36 +129,34 @@ function App() {
         onChange={handleFileUpload}
       />
       <button onClick={addSchoolCol} disabled={disable}>Add Schools</button>
-      {loading ?
-        (<ReactBootStrap.Spinner animation="border" />)
-        :
-        (
-          <table border="1" style={{ margin: "3px" }}>
-            <thead>
-              <tr>
-                {columns.map((col, idx) => {
+      {loading && (<ReactBootStrap.Spinner animation="border" />)}
+
+      <table border="1" style={{ margin: "3px" }}>
+        <thead>
+          <tr>
+            {columns.map((col, idx) => {
+              return (
+                <th key={col + idx}>{col.name}</th>
+              )
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {batchDataDisplay.map((houseObj, rowIdx) => {
+            return (
+              <tr key={houseObj + rowIdx}>
+                {Object.values(houseObj).map((value, idx) => {
                   return (
-                    <th key={col + idx}>{col.name}</th>
+                    <td key={value + idx} >{value}</td>
                   )
                 })}
               </tr>
-            </thead>
-            <tbody>
-              {batchDataDisplay.map((houseObj, idx) => {
-                return (
-                  <tr>
-                    {Object.values(houseObj).map((value) => {
-                      return (
-                        <td >{value}</td>
-                      )
-                    })}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        )
-      }
+            )
+          })}
+        </tbody>
+      </table>
+
+
 
       <button onClick={loadBatch} disabled={!loadMoreEnable}>Load More</button>
     </div >
