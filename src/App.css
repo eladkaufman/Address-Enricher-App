@@ -1,8 +1,17 @@
 td {
   border: 1px solid #000;
+  text-align: center;
 }
 
 tr td:last-child {
   max-width:100%;
   white-space: nowrap;
+}
+
+h1{
+  text-align: center;
+  padding-top: 35px;
+}
+.btn{
+  margin: 5px 5px
 }

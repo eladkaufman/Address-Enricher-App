@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const loadBatch = (props) => {
-    const { setLoading, setLoadMoreEnable, currBatchStart, BATCH_SIZE, data, setData, setBatchDataDisplay, setCurrBatchstart } = props
+const loadBatch = (setLoading, setLoadMoreEnable, currBatchStart, BATCH_SIZE, data, setData, setBatchDataDisplay, setCurrBatchstart) => {
+
     setLoading(true)
     setLoadMoreEnable(false)
     const promises = []
@@ -29,8 +29,11 @@ const loadBatch = (props) => {
 }
 
 const fetchData = async (rowObj) => {
-
-    const res = await axios.post("http://localhost:8000/api/enrich/", rowObj)
-    return res.data
+    try {
+        const res = await axios.post("http://localhost:8000/api/enrich/", rowObj)
+        return res.data
+    } catch (error) {
+        console.error(error);
+    }
 }
 export default loadBatch;
