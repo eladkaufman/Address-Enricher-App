@@ -2,12 +2,14 @@ import axios from 'axios';
 import React, { useState } from 'react';
 import DataTable from 'react-data-table-component';
 import * as XLSX from 'xlsx';
+import * as ReactBootStrap from 'react-bootstrap';
 
 function App() {
 
   const [columns, setColumns] = useState([]);
   const [data, setData] = useState([]);
   const [disable, setDisable] = useState(false);
+  const [loading, setLoading] = useState(false)
 
 
   const processData = dataString => {
@@ -65,6 +67,7 @@ function App() {
   }
 
   const addSchoolCol = () => {
+    setLoading(true)
     setDisable(true)
     setColumns([
       ...columns,
@@ -74,21 +77,31 @@ function App() {
       }
     ]);
 
-    for (let i = 0; i < data.length; i++) {
-      (async () => {
+    // for (let i = 0; i < data.length; i++) {
+    //   (async () => {
 
-        let newHouseObj = await fetchData(data[i])
-        setData([...data], data[i].Schools = newHouseObj.Schools)
-        console.log(`id = ${data[i].SAMPLE_ID} newHouseObj.Schools= ${newHouseObj.Schools}, data[i].Schools = ${data[i].Schools}`)
-      })()
-    }
+    //     let newHouseObj = await fetchData(data[i])
+    //     setData([...data], data[i].Schools = newHouseObj.Schools)
+    //     console.log(`id = ${data[i].SAMPLE_ID} newHouseObj.Schools= ${newHouseObj.Schools}, data[i].Schools = ${data[i].Schools}`)
+    //   })()
+    // }
 
-    // const promises = []
-    // for (let i = 0; i < 5; i++) { fetchData(data[i]).then(res => promises.push(res)) }
-    // Promise.all(promises).then(res => {
-    //   console.log("promise finished")
-    //   setData([...data], res)
-    // });
+    const promises = []
+    for (let i = 0; i < 10; i++) { promises.push(fetchData(data[i])) }
+    Promise.all(promises)
+      .then(res => {
+        setLoading(false)
+        console.log(res)
+        const updatedData = data;
+        res.forEach(houseObj => {
+          if (houseObj !== "") {
+            updatedData[updatedData.findIndex(obj => obj.SAMPLE_ID === houseObj.SAMPLE_ID)].Schools = houseObj.Schools;
+          }
+        })
+
+        setData([...updatedData])
+      })
+      .catch(err => console.log(err))
 
 
   }
@@ -109,12 +122,17 @@ function App() {
         onChange={handleFileUpload}
       />
       <button onClick={addSchoolCol} disabled={disable}>Add Schools</button>
-      <DataTable
-        pagination
-        highlightOnHover
-        columns={columns}
-        data={data}
-      />
+      {loading ?
+        (<ReactBootStrap.Spinner animation="border" />)
+        :
+        (<DataTable
+          pagination
+          highlightOnHover
+          columns={columns}
+          data={data}
+        />)}
+
+      {data.map(obj => { return (<p>{obj.SAMPLE_ID}, {obj.Schools}</p>) })}
     </div>
   );
 }
